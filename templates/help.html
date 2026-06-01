@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Как запустить проект</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 32px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+        
+        .step:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .step-text {
+            color: #555;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #e2e8f0;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #4a5568;
+            margin: 0 5px;
+        }
+        
+        .link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .link:hover {
+            text-decoration: underline;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+            color: #718096;
+            font-size: 14px;
+            text-align: center;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Назад к чату</a>
+        
+        <h1>🚀 Как запустить проект</h1>
+        
+        <div class="step">
+            <div class="step-text">
+                <span class="step-number">1</span>
+                <strong>Открыть папку проекта в VS Code</strong>
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-text">
+                <span class="step-number">2</span>
+                <strong>Открыть терминал:</strong> меню Terminal → New Terminal
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-text">
+                <span class="step-number">3</span>
+                <strong>Проверить виртуальное окружение:</strong><br>
+                В терминале должно быть написано 
+                <span class="badge">(venv)</span> 
+                в начале строки
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-text">
+                <span class="step-number">4</span>
+                <strong>Написать команду и нажать Enter:</strong>
+                <div class="code-block">python app.py</div>
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-text">
+                <span class="step-number">5</span>
+                <strong>Открыть браузер и перейти:</strong><br>
+                <a href="http://127.0.0.1:5000" class="link" target="_blank">http://127.0.0.1:5000</a>
+            </div>
+        </div>
+        
+        <div class="step">
+            <div class="step-text">
+                <span class="step-number">6</span>
+                <strong>Остановить сервер:</strong> нажать 
+                <span class="badge">Ctrl+C</span> 
+                в терминале
+            </div>
+        </div>
+        
+        <div class="footer">
+            Учебный проект. Дисциплина "Современные способы программирования". Магистратура 2026.
+        </div>
+    </div>
+</body>
+</html>
