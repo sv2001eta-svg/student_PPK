@@ -38,10 +38,10 @@
 
 | ID | Task | Status |
 |----|--------|--------|
-| 16 | Перечень онлайн-пользователей | Should |
-| 22 | Оповещения системы | Should |
-| - | Права админа (удаление сообщений) | Could |
-| 12 | Улучшенные сессии (flask-login) | Must |
+| 16 | Перечень онлайн-пользователей | <span class="notranslate">Should</span> |
+| 22 | Оповещения системы | <span class="notranslate">Should</span> |
+| - | Права админа (удаление сообщений) | <span class="notranslate">Could</span> |
+| 12 | Улучшенные сессии (flask-login) | <span class="notranslate">Must</span> |
 
 ---
 
@@ -51,10 +51,10 @@
 
 | ID | Task | Status |
 |----|--------|--------|
-| 14 | Изменение своих сообщений | Could |
-| 15 | Удаление своих сообщений | Could |
-| 17 | Эмодзи и смайлики | Could |
-| 25 | Индикатор набора текста | Won't |
+| 14 | Изменение своих сообщений | <span class="notranslate">Could</span> |
+| 15 | Удаление своих сообщений | <span class="notranslate">Could</span> |
+| 17 | Эмодзи и смайлики | <span class="notranslate">Could</span> |
+| 25 | Индикатор набора текста | <span class="notranslate">Won't</span> |
 
 ---
 
@@ -64,10 +64,10 @@
 
 | ID | Task | Status |
 |----|--------|--------|
-| 19 | Тестирование (PyTest) | Should |
-| 20 | Деплой на сервер | Must |
-| 21 | Автоматизация развёртывания (CI/CD) | Could |
+| 19 | Тестирование (PyTest) | <span class="notranslate">Should</span> |
+| 20 | Деплой на сервер | <span class="notranslate">Must</span> |
+| 21 | Автоматизация развёртывания (CI/CD) | <span class="notranslate">Could</span> |
 
 ---
 
-*Приоритеты: Must — обязательно, Should — очень желательно, Could — можно сделать, Won't — не в этот раз*
+<span class="notranslate">Priorities: Must — обязательно, Should — очень желательно, Could — можно сделать, Won't — не в этот раз</span>
