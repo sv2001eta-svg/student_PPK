@@ -10,11 +10,11 @@
 
 | ID | Task | Status |
 |----|--------|--------|
-| 1-3 | Настройка окружения (VS Code, Git, venv) | <span class="notranslate">Done</span> |
-| 5, 27 | Система учётных записей (Никнейм, сессия) | <span class="notranslate">Done</span> |
-| 4, 6, 8 | Простой чат (Отправка и просмотр сообщений) | <span class="notranslate">Done</span> |
-| 26 | Персональное приветствие (По времени суток) | <span class="notranslate">Done</span> |
-| 28 | Разделение сообщений: свои/чужие | <span class="notranslate">Done</span> |
+| 1-3 | Настройка окружения (VS Code, Git, venv) | **Done** |
+| 5, 27 | Система учётных записей (Никнейм, сессия) | **Done** |
+| 4, 6, 8 | Простой чат (Отправка и просмотр сообщений) | **Done** |
+| 26 | Персональное приветствие (По времени суток) | **Done** |
+| 28 | Разделение сообщений: свои/чужие | **Done** |
 
 ---
 
@@ -24,11 +24,11 @@
 
 | ID | Task | Status |
 |----|--------|--------|
-| 11 | Раздельные страницы входа и регистрации | <span class="notranslate">Done</span> |
-| 11 | Шифрование паролей (Werkzeug) | <span class="notranslate">Done</span> |
-| 7, 9 | Обновление в реальном времени (AJAX/fetch) | <span class="notranslate">Done</span> |
-| 10 | API для работы с сообщениями | <span class="notranslate">Done</span> |
-| - | Дизайн чата (пузыри сообщений, цвета) | <span class="notranslate">Done</span> |
+| 11 | Раздельные страницы входа и регистрации | **Done** |
+| 11 | Шифрование паролей (Werkzeug) | **Done** |
+| 7, 9 | Обновление в реальном времени (AJAX/fetch) | **Done** |
+| 10 | API для работы с сообщениями | **Done** |
+| - | Дизайн чата (пузыри сообщений, цвета) | **Done** |
 
 ---
 
@@ -38,10 +38,10 @@
 
 | ID | Task | Status |
 |----|--------|--------|
-| 16 | Перечень онлайн-пользователей | <span class="notranslate">Should</span> |
-| 22 | Оповещения системы | <span class="notranslate">Should</span> |
-| - | Права админа (удаление сообщений) | <span class="notranslate">Could</span> |
-| 12 | Улучшенные сессии (flask-login) | <span class="notranslate">Must</span> |
+| 16 | Перечень онлайн-пользователей | **Should** |
+| 22 | Оповещения системы | **Should** |
+| - | Права админа (удаление сообщений) | **Could** |
+| 12 | Улучшенные сессии (flask-login) | **Must** |
 
 ---
 
@@ -51,10 +51,10 @@
 
 | ID | Task | Status |
 |----|--------|--------|
-| 14 | Изменение своих сообщений | <span class="notranslate">Could</span> |
-| 15 | Удаление своих сообщений | <span class="notranslate">Could</span> |
-| 17 | Эмодзи и смайлики | <span class="notranslate">Could</span> |
-| 25 | Индикатор набора текста | <span class="notranslate">Won't</span> |
+| 14 | Изменение своих сообщений | **Could** |
+| 15 | Удаление своих сообщений | **Could** |
+| 17 | Эмодзи и смайлики | **Could** |
+| 25 | Индикатор набора текста | **Won't** |
 
 ---
 
@@ -64,10 +64,10 @@
 
 | ID | Task | Status |
 |----|--------|--------|
-| 19 | Тестирование (PyTest) | <span class="notranslate">Should</span> |
-| 20 | Деплой на сервер | <span class="notranslate">Must</span> |
-| 21 | Автоматизация развёртывания (CI/CD) | <span class="notranslate">Could</span> |
+| 19 | Тестирование (PyTest) | **Should** |
+| 20 | Деплой на сервер | **Must** |
+| 21 | Автоматизация развёртывания (CI/CD) | **Could** |
 
 ---
 
-<span class="notranslate">Priorities: Must — required, Should — highly desirable, Could — optional, Won't — not this time</span>
+*Приоритеты: **Must** — обязательно, **Should** — очень желательно, **Could** — можно сделать, **Won't** — не в этот раз*
