@@ -10,11 +10,11 @@
 
 | ID | Task | Status |
 |----|--------|--------|
-| 1-3 | Настройка окружения (VS Code, Git, venv) | Выполнено |
-| 5, 27 | Система учётных записей (Никнейм, сессия) | Выполнено |
-| 4, 6, 8 | Простой чат (Отправка и просмотр сообщений) | Выполнено |
-| 26 | Персональное приветствие (По времени суток) | Выполнено |
-| 28 | Разделение сообщений: свои/чужие | Выполнено |
+| 1-3 | Настройка окружения (VS Code, Git, venv) | <span class="notranslate">Done</span> |
+| 5, 27 | Система учётных записей (Никнейм, сессия) | <span class="notranslate">Done</span> |
+| 4, 6, 8 | Простой чат (Отправка и просмотр сообщений) | <span class="notranslate">Done</span> |
+| 26 | Персональное приветствие (По времени суток) | <span class="notranslate">Done</span> |
+| 28 | Разделение сообщений: свои/чужие | <span class="notranslate">Done</span> |
 
 ---
 
@@ -24,11 +24,11 @@
 
 | ID | Task | Status |
 |----|--------|--------|
-| 11 | Раздельные страницы входа и регистрации | Выполнено |
-| 11 | Шифрование паролей (Werkzeug) | Выполнено |
-| 7, 9 | Обновление в реальном времени (AJAX/fetch) | Выполнено |
-| 10 | API для работы с сообщениями | Выполнено |
-| - | Дизайн чата (пузыри сообщений, цвета) | Выполнено |
+| 11 | Раздельные страницы входа и регистрации | <span class="notranslate">Done</span> |
+| 11 | Шифрование паролей (Werkzeug) | <span class="notranslate">Done</span> |
+| 7, 9 | Обновление в реальном времени (AJAX/fetch) | <span class="notranslate">Done</span> |
+| 10 | API для работы с сообщениями | <span class="notranslate">Done</span> |
+| - | Дизайн чата (пузыри сообщений, цвета) | <span class="notranslate">Done</span> |
 
 ---
 
@@ -70,4 +70,4 @@
 
 ---
 
-<span class="notranslate">Priorities: Must — обязательно, Should — очень желательно, Could — можно сделать, Won't — не в этот раз</span>
+<span class="notranslate">Priorities: Must — required, Should — highly desirable, Could — optional, Won't — not this time</span>
