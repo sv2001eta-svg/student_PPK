@@ -55,29 +55,36 @@ def register():
         
         hashed_password = generate_password_hash(password)
         
-        try:
-            print(f"🔍 Пытаюсь подключиться к БД...")
-            conn = get_db_connection()
-            print(f"✅ Подключение успешно!")
-            
-            cursor = conn.cursor()
-            sql = "INSERT INTO users (first_name, last_name, nickname, password) VALUES (%s, %s, %s, %s)"
-            print(f"📝 Выполняю запрос: {sql}")
-            
-            cursor.execute(sql, (first_name, last_name, nickname, hashed_password))
-            conn.commit()
-            conn.close()
-            print(f"✅ Пользователь {nickname} зарегистрирован!")
-            
-            return redirect(url_for('login'))
-        except mysql.connector.Error as err:
-            print(f"❌ ОШИБКА БАЗЫ ДАННЫХ: {err}")  # <-- ВОТ ЭТО ПОКАЖЕТ ОШИБКУ!
-            flash(f"Ошибка: {err}")
-        except Exception as e:
-            print(f"❌ ОБЩАЯ ОШИБКА: {e}")
-            flash(f"Ошибка регистрации")
-            
-    return render_template('Registration.html')
+try:
+    print(f"🔍 Пытаюсь подключиться к БД...")
+    conn = get_db_connection()
+    print(f"✅ Подключение успешно!")
+    
+    cursor = conn.cursor()
+    sql = "INSERT INTO users (first_name, last_name, nickname, password) VALUES (%s, %s, %s, %s)"
+    print(f"📝 Выполняю запрос: {sql}")
+    
+    cursor.execute(sql, (first_name, last_name, nickname, hashed_password))
+    conn.commit()
+    print(f"✅ Пользователь {nickname} зарегистрирован!")
+    
+    return redirect(url_for('login'))
+    
+except mysql.connector.Error as err:
+    print(f"❌ ОШИБКА БАЗЫ ДАННЫХ: {err}")
+    flash(f"Ошибка: {err}")
+    
+except Exception as e:
+    print(f"❌ ОБЩАЯ ОШИБКА: {e}")
+    flash(f"Ошибка регистрации")
+    
+finally:
+    # ← ЭТО ВАЖНО! Закрываем соединение в любом случае
+    if 'conn' in locals() and conn.is_connected():
+        conn.close()
+        print("✅ Соединение закрыто")
+    
+return render_template('Registration.html')
 
 # === СПИСОК ПОЛЬЗОВАТЕЛЕЙ (ТВОЯ НОВАЯ ЗАДАЧА) ===
 @app.route('/users')
