@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат с {{ recipient.nickname }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chat-container {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            height: 80vh;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-header {
+            background: #764ba2;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-header a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .messages-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f5f5f5;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+        }
+        .message.mine {
+            background: #764ba2;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 0;
+        }
+        .message.theirs {
+            background: white;
+            color: #333;
+            border: 1px solid #ddd;
+            margin-right: auto;
+            border-bottom-left-radius: 0;
+        }
+        .input-area {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+        }
+        button {
+            margin-left: 10px;
+            padding: 10px 20px;
+            background: #764ba2;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <span>Чат с {{ recipient.first_name }} ({{ recipient.nickname }})</span>
+            <a href="/users">← Назад</a>
+        </div>
+
+        <div class="messages-area" id="messagesArea">
+            {% for msg in messages %}
+                {% if msg.sender_id == session['user_id'] %}
+                    <div class="message mine">
+                        {{ msg.message_text }}
+                    </div>
+                {% else %}
+                    <div class="message theirs">
+                        <strong>{{ msg.sender_nickname }}:</strong><br>
+                        {{ msg.message_text }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="Введите сообщение...">
+            <button onclick="sendMessage()">Отправить</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value;
+            if (!text) return;
+
+            // Здесь позже добавим отправку на сервер через fetch/AJAX
+            // Пока просто добавим сообщение визуально (для теста)
+            const area = document.getElementById('messagesArea');
+            const newMsg = document.createElement('div');
+            newMsg.className = 'message mine';
+            newMsg.innerText = text;
+            area.appendChild(newMsg);
+            input.value = '';
+            area.scrollTop = area.scrollHeight;
+        }
+    </script>
+</body>
+</html>

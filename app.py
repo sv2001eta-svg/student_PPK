@@ -127,6 +127,64 @@ def users_list():
     
     return render_template('users.html', users=users, current_user=session['nickname'])
 
+# === СПИСОК ПОЛЬЗОВАТЕЛЕЙ ===
+@app.route('/users')
+def users_list():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT id, nickname, first_name, last_name FROM users WHERE id != %s", (session['user_id'],))
+    users = cursor.fetchall()
+    conn.close()
+    
+    return render_template('users.html', users=users, current_user=session['nickname'])
+
+
+# === ЧАТ С ПОЛЬЗОВАТЕЛЕМ ===  ← ВСТАВЬ СЮДА
+@app.route('/chat/<recipient_nickname>')
+def chat(recipient_nickname):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    current_user_id = session['user_id']
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    cursor.execute("SELECT * FROM users WHERE nickname = %s", (recipient_nickname,))
+    recipient = cursor.fetchone()
+    
+    if not recipient:
+        return "Пользователь не найден", 404
+    
+    recipient_id = recipient['id']
+
+    cursor.execute("""
+        SELECT m.*, u.nickname as sender_nickname 
+        FROM messages m
+        JOIN users u ON m.sender_id = u.id
+        WHERE (m.sender_id = %s AND m.recipient_id = %s) 
+           OR (m.sender_id = %s AND m.recipient_id = %s) 
+        ORDER BY m.timestamp ASC
+    """, (current_user_id, recipient_id, recipient_id, current_user_id))
+    
+    messages = cursor.fetchall()
+    conn.close()
+
+    return render_template('chat.html', 
+                           current_user=session['nickname'], 
+                           recipient=recipient, 
+                           messages=messages)
+
+
+# === ВЫХОД ===
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
 # === ВЫХОД ===
 @app.route('/logout')
 def logout():
