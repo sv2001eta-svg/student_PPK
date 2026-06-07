@@ -127,20 +127,6 @@ def users_list():
     
     return render_template('users.html', users=users, current_user=session['nickname'])
 
-# === СПИСОК ПОЛЬЗОВАТЕЛЕЙ ===
-@app.route('/users')
-def users_list():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT id, nickname, first_name, last_name FROM users WHERE id != %s", (session['user_id'],))
-    users = cursor.fetchall()
-    conn.close()
-    
-    return render_template('users.html', users=users, current_user=session['nickname'])
-
 
 # === ЧАТ С ПОЛЬЗОВАТЕЛЕМ ===  ← ВСТАВЬ СЮДА
 @app.route('/chat/<recipient_nickname>')
@@ -178,12 +164,6 @@ def chat(recipient_nickname):
                            recipient=recipient, 
                            messages=messages)
 
-
-# === ВЫХОД ===
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
 
 # === ВЫХОД ===
 @app.route('/logout')
