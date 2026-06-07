@@ -8,9 +8,9 @@ app.secret_key = 'super_secret_key_for_sessions' # Ключ для сессий
 # 🔧 НАСТРОЙКИ БАЗЫ ДАННЫХ
 db_config = {
     'host': 'localhost',  # Если база на удаленном сервере, тут будет IP
-    'user': 'sch688_maga2',
-    'password': 'nfyH3DNT',
-    'database': 'sch688_maga2'  # <-- ПРОВЕРЬ ИМЯ БАЗЫ ДАННЫХ!
+    'user': 'cc086496_maga2',
+'password': 'tEX22kha',
+'database': 'cc086496_maga2'
 }
 
 def get_db_connection():
