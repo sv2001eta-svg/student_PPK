@@ -7,7 +7,7 @@ app.secret_key = 'super_secret_key_for_sessions' # Ключ для сессий
 
 # 🔧 НАСТРОЙКИ БАЗЫ ДАННЫХ
 db_config = {
-    'host': 'localhost',  # Если база на удаленном сервере, тут будет IP
+    'host': 'mysql.timeweb.ru',  # Если база на удаленном сервере, тут будет IP
     'user': 'cc086496_maga2',
 'password': 'tEX22kha',
 'database': 'cc086496_maga2'
