@@ -2,7 +2,7 @@ $(document).ready(function() {
     
     // Обработка формы регистрации
     $('#registrationForm').on('submit', function(e) {
-        e.preventDefault(); // Предотвращаем стандартную отправку
+        e.preventDefault();
         
         const formData = {
             first_name: $('#first_name').val(),
@@ -12,12 +12,12 @@ $(document).ready(function() {
         };
         
         $.ajax({
-    url: '/register',
-    method: 'POST',
-    data: formData,  // ← Убрано JSON.stringify
-    success: function(response) {
+            url: '/register',
+            method: 'POST',
+            data: formData,
+            success: function(response) {
                 alert('Регистрация успешна! Теперь войдите.');
-                window.location.href = '/login'; // Перенаправление на вход
+                window.location.href = '/login';
             },
             error: function(xhr) {
                 const error = xhr.responseJSON ? xhr.responseJSON.error : 'Ошибка регистрации';
@@ -28,7 +28,7 @@ $(document).ready(function() {
     
     // Обработка формы авторизации
     $('#authorizationForm').on('submit', function(e) {
-        e.preventDefault(); // Предотвращаем стандартную отправку
+        e.preventDefault();
         
         const formData = {
             username: $('#username').val(),
@@ -36,13 +36,11 @@ $(document).ready(function() {
         };
         
         $.ajax({
-            url: '/user_avtorization',
+            url: '/login',
             method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(formData),
+            data: formData,
             success: function(response) {
                 if (response.success) {
-                    // Перенаправление на чат с никнеймом
                     window.location.href = '/chat?nickname=' + formData.username;
                 } else {
                     alert('Ошибка: ' + response.message);
