@@ -12,11 +12,10 @@ $(document).ready(function() {
         };
         
         $.ajax({
-            url: '/register',
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(formData),
-            success: function(response) {
+    url: '/register',
+    method: 'POST',
+    data: formData,  // ← Убрано JSON.stringify
+    success: function(response) {
                 alert('Регистрация успешна! Теперь войдите.');
                 window.location.href = '/login'; // Перенаправление на вход
             },

@@ -50,7 +50,7 @@ def register():
     if request.method == 'POST':
         first_name = request.form['first_name']
         last_name = request.form['last_name']
-        nickname = request.form['nickname']
+        nickname = request.form['username']  # ← Исправлено!
         password = request.form['password']
         
         hashed_password = generate_password_hash(password)
