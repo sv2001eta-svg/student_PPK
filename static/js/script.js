@@ -26,7 +26,7 @@ $(document).ready(function() {
         });
     });
     
-        // Обработка формы авторизации
+    // Обработка формы авторизации
     $('#authorizationForm').on('submit', function(e) {
         e.preventDefault();
         
@@ -52,3 +52,5 @@ $(document).ready(function() {
             }
         });
     });
+    
+});
