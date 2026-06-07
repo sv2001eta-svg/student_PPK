@@ -10,8 +10,10 @@ db_config = {
     'host': 'vh464.timeweb.ru',
     'user': 'cc086496_maga2',
     'password': 'tEX22kha',
-    'database': 'cc086496_maga2'
+    'database': 'cc086496_maga2',
+    'use_pure': True  # <--- ДОБАВЬ ЭТУ СТРОКУ!
 }
+
 
 def get_db_connection():
     try:
@@ -65,20 +67,49 @@ def register():
         nickname = request.form.get('username')
         password = request.form.get('password')
         
+        print(f"📝 Регистрация: {first_name} {last_name}, ник: {nickname}")
+        
+        if not all([first_name, last_name, nickname, password]):
+            return jsonify({'success': False, 'error': 'Заполните все поля'})
+        
         hashed_password = generate_password_hash(password)
+        print(f"🔐 Хеш пароля: {hashed_password[:20]}...")
         
         try:
+            print("🔍 Подключаюсь к БД...")
             conn = get_db_connection()
+            
+            if not conn:
+                print("❌ Не удалось подключиться к БД")
+                return jsonify({'success': False, 'error': 'Ошибка подключения к базе данных'})
+            
+            print("✅ Подключение к БД успешно")
             cursor = conn.cursor()
+            
             sql = "INSERT INTO users (first_name, last_name, nickname, password) VALUES (%s, %s, %s, %s)"
+            print(f"📝 Выполняю запрос: {sql}")
+            print(f"   Данные: ({first_name}, {last_name}, {nickname}, {hashed_password})")
+            
             cursor.execute(sql, (first_name, last_name, nickname, hashed_password))
             conn.commit()
+            print(f"✅ Пользователь {nickname} зарегистрирован! ID: {cursor.lastrowid}")
+            
             conn.close()
-            return jsonify({'success': True}) # Ответ для JS
-        except Error as err:
-            return jsonify({'success': False, 'error': str(err)})
+            return jsonify({'success': True})
+            
+        except mysql.connector.Error as err:
+            print(f"❌ ОШИБКА MySQL: {err}")
+            print(f"   Код ошибки: {err.errno}")
+            return jsonify({'success': False, 'error': f'Ошибка БД: {err}'})
         except Exception as e:
+            print(f"❌ ОБЩАЯ ОШИБКА: {e}")
+            import traceback
+            traceback.print_exc()
             return jsonify({'success': False, 'error': str(e)})
+        finally:
+            if 'conn' in locals() and conn.is_connected():
+                conn.close()
+                print("✅ Соединение закрыто")
     
     return render_template('Registration.html')
 
@@ -101,6 +132,11 @@ def users_list():
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
+# === ГЛАВНАЯ СТРАНИЦА ===
+@app.route('/')
+def index():
+    return redirect(url_for('register'))
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -26,7 +26,7 @@ $(document).ready(function() {
         });
     });
     
-    // Обработка формы авторизации
+        // Обработка формы авторизации
     $('#authorizationForm').on('submit', function(e) {
         e.preventDefault();
         
@@ -41,7 +41,7 @@ $(document).ready(function() {
             data: formData,
             success: function(response) {
                 if (response.success) {
-                    window.location.href = '/chat?nickname=' + formData.username;
+                    window.location.href = '/users';
                 } else {
                     alert('Ошибка: ' + response.message);
                 }
@@ -52,5 +52,3 @@ $(document).ready(function() {
             }
         });
     });
-    
-});
