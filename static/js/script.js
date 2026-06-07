@@ -12,7 +12,7 @@ $(document).ready(function() {
         };
         
         $.ajax({
-            url: '/user_registration',
+            url: '/register',
             method: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(formData),

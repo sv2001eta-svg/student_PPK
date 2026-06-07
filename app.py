@@ -7,7 +7,7 @@ app.secret_key = 'super_secret_key_for_sessions' # Ключ для сессий
 
 # 🔧 НАСТРОЙКИ БАЗЫ ДАННЫХ
 db_config = {
-    'host': 'mysql.timeweb.ru',  # Если база на удаленном сервере, тут будет IP
+    'host': 'vh464.timeweb.ru',  # Если база на удаленном сервере, тут будет IP
     'user': 'cc086496_maga2',
 'password': 'tEX22kha',
 'database': 'cc086496_maga2'
@@ -56,16 +56,26 @@ def register():
         hashed_password = generate_password_hash(password)
         
         try:
+            print(f"🔍 Пытаюсь подключиться к БД...")
             conn = get_db_connection()
+            print(f"✅ Подключение успешно!")
+            
             cursor = conn.cursor()
-            # Вставляем данные в базу
             sql = "INSERT INTO users (first_name, last_name, nickname, password) VALUES (%s, %s, %s, %s)"
+            print(f"📝 Выполняю запрос: {sql}")
+            
             cursor.execute(sql, (first_name, last_name, nickname, hashed_password))
             conn.commit()
             conn.close()
+            print(f"✅ Пользователь {nickname} зарегистрирован!")
+            
             return redirect(url_for('login'))
         except mysql.connector.Error as err:
+            print(f"❌ ОШИБКА БАЗЫ ДАННЫХ: {err}")  # <-- ВОТ ЭТО ПОКАЖЕТ ОШИБКУ!
             flash(f"Ошибка: {err}")
+        except Exception as e:
+            print(f"❌ ОБЩАЯ ОШИБКА: {e}")
+            flash(f"Ошибка регистрации")
             
     return render_template('Registration.html')
 
