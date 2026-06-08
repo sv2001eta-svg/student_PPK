@@ -20,7 +20,7 @@
 - ✅ JavaScript (jQuery AJAX)
 - ✅ Базовые маршруты Flask
 
-### Этап 2: База данных ⏳ (В работе)
+### Этап 2: База данных ⏳ (Завершён)
 **budniks246-cloud:**
 - 🔲 Создание базы данных MySQL
 - 🔲 Таблица `users` (id, first_name, last_name, username, password)
