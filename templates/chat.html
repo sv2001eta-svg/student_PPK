@@ -38,6 +38,12 @@
             text-decoration: none;
             font-weight: bold;
         }
+        .messages-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f5f5f5;
+        }
         .message {
             position: relative;
             margin-bottom: 10px;
@@ -65,51 +71,54 @@
             margin-top: 5px;
             text-align: right;
         }
-        .messages-area {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            background: #f5f5f5;
-        }
-        .message {
-            margin-bottom: 10px;
-            padding: 10px;
-            border-radius: 10px;
-            max-width: 70%;
-        }
-        .message.mine {
-            background: #764ba2;
-            color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 0;
-        }
-        .message.theirs {
-            background: white;
-            color: #333;
-            border: 1px solid #ddd;
-            margin-right: auto;
-            border-bottom-left-radius: 0;
-        }
         .input-area {
             padding: 15px;
             border-top: 1px solid #eee;
             display: flex;
+            gap: 10px;
         }
-        input {
+        #messageInput {
             flex: 1;
-            padding: 10px;
+            padding: 10px 15px;
             border: 1px solid #ddd;
             border-radius: 20px;
             outline: none;
+            font-size: 14px;
+        }
+        #messageInput:focus {
+            border-color: #764ba2;
         }
         button {
-            margin-left: 10px;
             padding: 10px 20px;
-            background: #764ba2;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             border-radius: 20px;
             cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        button:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        /* Скроллбар */
+        .messages-area::-webkit-scrollbar {
+            width: 6px;
+        }
+        .messages-area::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        .messages-area::-webkit-scrollbar-thumb {
+            background: #c1b1d1;
+            border-radius: 3px;
+        }
+        .messages-area::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
         }
     </style>
 </head>
@@ -117,81 +126,80 @@
 
     <div class="chat-container">
         <div class="chat-header">
-            <span>Чат с {{ recipient.first_name }} ({{ recipient.nickname }})</span>
+            <span>Чат с {{ recipient.first_name }} (@{{ recipient.nickname }})</span>
             <a href="/users">← Назад</a>
         </div>
 
-        <!-- Добавь эту строку перед сообщениями -->
+        <!-- Скрытые поля для JavaScript -->
         <input type="hidden" id="recipientId" value="{{ recipient.id }}">
+        <input type="hidden" id="currentUserId" value="{{ session['user_id'] }}">
+
         <div class="messages-area" id="messagesArea">
             {% for msg in messages %}
-                {% if msg.sender_id == session['user_id'] %}
-                    <div class="message mine">
-                        {{ msg.message_text }}
-                    </div>
-                {% else %}
-                    <div class="message theirs">
+                <div class="message {% if msg.sender_id == session['user_id'] %}mine{% else %}theirs{% endif %}" 
+                     data-id="{{ msg.id }}">
+                    {% if msg.sender_id != session['user_id'] %}
                         <strong>{{ msg.sender_nickname }}:</strong><br>
-                        {{ msg.message_text }}
+                    {% endif %}
+                    {{ msg.message_text }}
+                    <div class="message-time">
+                        {% if msg.timestamp %}
+                            {{ msg.timestamp.strftime('%H:%M') }}
+                        {% endif %}
                     </div>
-                {% endif %}
+                </div>
             {% endfor %}
         </div>
 
         <div class="input-area">
-            <input type="text" id="messageInput" placeholder="Введите сообщение...">
-            <button onclick="sendMessage()">Отправить</button>
+            <input type="text" id="messageInput" placeholder="Введите сообщение..." autocomplete="off">
+            <button onclick="sendMessage()" id="sendBtn">Отправить</button>
         </div>
     </div>
 
     <script>
-        // Автопрокрутка вниз при загрузке
-        document.addEventListener('DOMContentLoaded', function() {
-            const messagesArea = document.getElementById('messagesArea');
-            messagesArea.scrollTop = messagesArea.scrollHeight;
-        });
+        // === ИНИЦИАЛИЗАЦИЯ ===
+        const currentUserId = parseInt(document.getElementById('currentUserId').value);
+        const recipientId = parseInt(document.getElementById('recipientId').value);
+        const messagesArea = document.getElementById('messagesArea');
+        const input = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
 
-        // Отправка сообщения по Enter
-        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+        // Автопрокрутка при загрузке
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+
+        // Отправка по клавише Enter
+        input.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
+                e.preventDefault();
                 sendMessage();
             }
         });
 
+        // === ОТПРАВКА СООБЩЕНИЯ ===
         function sendMessage() {
-            const input = document.getElementById('messageInput');
             const text = input.value.trim();
-            const recipientId = document.getElementById('recipientId').value;
-
             if (!text) return;
 
-            // Блокируем кнопку отправки
-            const sendBtn = document.querySelector('button[onclick="sendMessage()"]');
+            // Визуальная блокировка
             sendBtn.disabled = true;
-            sendBtn.textContent = 'Отправка...';
+            sendBtn.textContent = '...';
 
-            // Отправляем на сервер
             fetch('/api/send_message', {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     message: text, 
-                    recipient_id: parseInt(recipientId) 
+                    recipient_id: recipientId 
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Очищаем поле
                     input.value = '';
-                    // Добавляем сообщение визуально
-                    addMessageToChat(text, 'mine');
-                    // Прокручиваем вниз
-                    scrollToBottom();
+                    pollMessages(); // Сразу проверяем новые сообщения
                 } else {
-                    alert('Ошибка: ' + data.message);
+                    alert('Ошибка: ' + (data.message || 'Неизвестная ошибка'));
                 }
             })
             .catch(error => {
@@ -199,82 +207,72 @@
                 alert('Не удалось отправить сообщение');
             })
             .finally(() => {
-                // Разблокируем кнопку
                 sendBtn.disabled = false;
                 sendBtn.textContent = 'Отправить';
                 input.focus();
             });
         }
 
-        // Добавление сообщения в чат
-        function addMessageToChat(text, type) {
-            const messagesArea = document.getElementById('messagesArea');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${type}`;
+        // === ДОБАВЛЕНИЕ СООБЩЕНИЯ В ИНТЕРФЕЙС ===
+        function appendMessage(msg) {
+            const isMine = msg.sender_id == currentUserId;
+            const div = document.createElement('div');
+            div.className = `message ${isMine ? 'mine' : 'theirs'}`;
+            div.dataset.id = msg.id; // Важно для отслеживания новых!
             
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('ru-RU', { 
+            const time = msg.time || new Date().toLocaleTimeString('ru-RU', {
                 hour: '2-digit', 
                 minute: '2-digit' 
             });
             
-            if (type === 'mine') {
-                messageDiv.innerHTML = `
-                    ${escapeHtml(text)}
-                    <div class="message-time">${timeString}</div>
-                `;
-            } else {
-                messageDiv.innerHTML = `
-                    <strong>${senderNickname}:</strong><br>
-                    ${escapeHtml(text)}
-                    <div class="message-time">${timeString}</div>
-                `;
-            }
-            
-            messagesArea.appendChild(messageDiv);
+            div.innerHTML = `
+                ${!isMine ? `<strong>${escapeHtml(msg.sender_nickname)}:</strong><br>` : ''}
+                ${escapeHtml(msg.message_text)}
+                <div class="message-time">${time}</div>
+            `;
+            messagesArea.appendChild(div);
         }
 
-        // Прокрутка вниз
+        // === REAL-TIME ПРОВЕРКА НОВЫХ СООБЩЕНИЙ (JSON API) ===
+        function pollMessages() {
+            // Получаем ID последнего отображённого сообщения
+            const lastMsg = messagesArea.querySelector('.message:last-child');
+            const lastId = lastMsg ? parseInt(lastMsg.dataset.id) || 0 : 0;
+
+            fetch(`/api/get_messages?recipient_id=${recipientId}&last_id=${lastId}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network error');
+                    return response.json();
+                })
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach(msg => appendMessage(msg));
+                        scrollToBottom();
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка синхронизации:', error);
+                });
+        }
+
+        // Плавная прокрутка вниз
         function scrollToBottom() {
-            const messagesArea = document.getElementById('messagesArea');
-            messagesArea.scrollTo({
-                top: messagesArea.scrollHeight,
-                behavior: 'smooth'
+            messagesArea.scrollTo({ 
+                top: messagesArea.scrollHeight, 
+                behavior: 'smooth' 
             });
         }
 
-        // Защита от XSS
+        // Защита от XSS-атак
         function escapeHtml(text) {
+            if (!text) return '';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
         }
 
-        // Автоматическая проверка новых сообщений каждые 3 секунды
-        let lastMessageCount = document.querySelectorAll('.message').length;
-        
-        function checkNewMessages() {
-            fetch(window.location.href + '?ajax=1', {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newMessagesArea = doc.querySelector('#messagesArea');
-                const currentMessagesArea = document.getElementById('messagesArea');
-                
-                if (newMessagesArea && newMessagesArea.children.length > currentMessagesArea.children.length) {
-                    // Есть новые сообщения - обновляем
-                    currentMessagesArea.innerHTML = newMessagesArea.innerHTML;
-                    scrollToBottom();
-                }
-            })
-            .catch(error => console.error('Ошибка проверки сообщений:', error));
-        }
-
-        // Запускаем проверку каждые 3 секунды
-        setInterval(checkNewMessages, 3000);
-    </script>        
+        // Запускаем проверку новых сообщений каждые 2 секунды
+        setInterval(pollMessages, 2000);
+    </script>
+</body>
+</html>

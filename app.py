@@ -211,6 +211,40 @@ def send_message_api():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+# === ПОЛУЧЕНИЕ НОВЫХ СООБЩЕНИЙ (JSON API) ===
+@app.route('/api/get_messages')
+def get_messages_api():
+    if 'user_id' not in session:
+        return jsonify([])
+
+    current_user_id = session['user_id']
+    recipient_id = request.args.get('recipient_id')
+    last_id = request.args.get('last_id', 0, type=int)
+
+    if not recipient_id:
+        return jsonify([])
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT m.id, m.message_text, m.sender_id, u.nickname as sender_nickname,
+                   DATE_FORMAT(m.timestamp, '%H:%i') as time
+            FROM messages m
+            JOIN users u ON m.sender_id = u.id
+            WHERE m.id > %s
+              AND ((m.sender_id = %s AND m.recipient_id = %s) 
+                   OR (m.sender_id = %s AND m.recipient_id = %s))
+            ORDER BY m.id ASC
+        """, (last_id, current_user_id, recipient_id, recipient_id, current_user_id))
+        
+        messages = cursor.fetchall()
+        conn.close()
+        return jsonify(messages)
+    except Exception as e:
+        print(f"Ошибка get_messages: {e}")
+        return jsonify([]), 500
+
 # === ВЫХОД ===
 @app.route('/logout')
 def logout():
