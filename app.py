@@ -127,7 +127,7 @@ def users_list():
     
     return render_template('users.html', users=users, current_user=session['nickname'])
 
-# === ЧАТ С ПОЛЬЗОВАТЕЛЕМ ===  ← ВСТАВЬ СЮДА
+# === ЧАТ С ПОЛЬЗОВАТЕЛЕМ ===
 @app.route('/chat/<recipient_nickname>')
 def chat(recipient_nickname):
     if 'user_id' not in session:
@@ -138,6 +138,7 @@ def chat(recipient_nickname):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
+    # Находим ID собеседника
     cursor.execute("SELECT * FROM users WHERE nickname = %s", (recipient_nickname,))
     recipient = cursor.fetchone()
     
@@ -146,22 +147,44 @@ def chat(recipient_nickname):
     
     recipient_id = recipient['id']
 
+    # Получаем историю переписки (последние 50 сообщений)
     cursor.execute("""
         SELECT m.*, u.nickname as sender_nickname 
         FROM messages m
         JOIN users u ON m.sender_id = u.id
         WHERE (m.sender_id = %s AND m.recipient_id = %s) 
            OR (m.sender_id = %s AND m.recipient_id = %s) 
-        ORDER BY m.timestamp ASC
+        ORDER BY m.timestamp DESC
+        LIMIT 50
     """, (current_user_id, recipient_id, recipient_id, current_user_id))
     
     messages = cursor.fetchall()
+    # Переворачиваем, чтобы новые были внизу
+    messages.reverse()
+    
     conn.close()
+
+    # Если AJAX-запрос - возвращаем только блок с сообщениями
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from flask import render_template_string
+        html = render_template_string('''
+            {% for msg in messages %}
+                <div class="message {% if msg.sender_id == session['user_id'] %}mine{% else %}theirs{% endif %}">
+                    {% if msg.sender_id != session['user_id'] %}
+                        <strong>{{ msg.sender_nickname }}:</strong><br>
+                    {% endif %}
+                    {{ msg.message_text }}
+                    <div class="message-time">{{ msg.timestamp.strftime('%H:%M') }}</div>
+                </div>
+            {% endfor %}
+        ''', messages=messages, session=session)
+        return html
 
     return render_template('chat.html', 
                            current_user=session['nickname'], 
                            recipient=recipient, 
-                           messages=messages)
+                           messages=messages,
+                           sender_nickname=session['nickname'])
 
 # === ОТПРАВКА СООБЩЕНИЯ (API) ===
 @app.route('/api/send_message', methods=['POST'])

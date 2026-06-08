@@ -38,6 +38,33 @@
             text-decoration: none;
             font-weight: bold;
         }
+        .message {
+            position: relative;
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+        .message.mine {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        .message.theirs {
+            background: white;
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .message-time {
+            font-size: 0.75em;
+            opacity: 0.7;
+            margin-top: 5px;
+            text-align: right;
+        }
         .messages-area {
             flex: 1;
             padding: 20px;
@@ -118,29 +145,136 @@
     </div>
 
     <script>
+        // Автопрокрутка вниз при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            const messagesArea = document.getElementById('messagesArea');
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        });
+
+        // Отправка сообщения по Enter
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
         function sendMessage() {
             const input = document.getElementById('messageInput');
-            const text = input.value;
+            const text = input.value.trim();
             const recipientId = document.getElementById('recipientId').value;
 
             if (!text) return;
 
-            // Отправляем данные на сервер
+            // Блокируем кнопку отправки
+            const sendBtn = document.querySelector('button[onclick="sendMessage()"]');
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Отправка...';
+
+            // Отправляем на сервер
             fetch('/api/send_message', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text, recipient_id: recipientId })
+                headers: { 
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    message: text, 
+                    recipient_id: parseInt(recipientId) 
+                })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     // Очищаем поле
                     input.value = '';
-                    // Перезагружаем страницу, чтобы увидеть сообщение (самый простой способ)
-                    location.reload(); 
+                    // Добавляем сообщение визуально
+                    addMessageToChat(text, 'mine');
+                    // Прокручиваем вниз
+                    scrollToBottom();
                 } else {
-                    alert('Ошибка отправки');
+                    alert('Ошибка: ' + data.message);
                 }
+            })
+            .catch(error => {
+                console.error('Ошибка отправки:', error);
+                alert('Не удалось отправить сообщение');
+            })
+            .finally(() => {
+                // Разблокируем кнопку
+                sendBtn.disabled = false;
+                sendBtn.textContent = 'Отправить';
+                input.focus();
             });
         }
-    </script>    
+
+        // Добавление сообщения в чат
+        function addMessageToChat(text, type) {
+            const messagesArea = document.getElementById('messagesArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ru-RU', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            if (type === 'mine') {
+                messageDiv.innerHTML = `
+                    ${escapeHtml(text)}
+                    <div class="message-time">${timeString}</div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <strong>${senderNickname}:</strong><br>
+                    ${escapeHtml(text)}
+                    <div class="message-time">${timeString}</div>
+                `;
+            }
+            
+            messagesArea.appendChild(messageDiv);
+        }
+
+        // Прокрутка вниз
+        function scrollToBottom() {
+            const messagesArea = document.getElementById('messagesArea');
+            messagesArea.scrollTo({
+                top: messagesArea.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        // Защита от XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Автоматическая проверка новых сообщений каждые 3 секунды
+        let lastMessageCount = document.querySelectorAll('.message').length;
+        
+        function checkNewMessages() {
+            fetch(window.location.href + '?ajax=1', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newMessagesArea = doc.querySelector('#messagesArea');
+                const currentMessagesArea = document.getElementById('messagesArea');
+                
+                if (newMessagesArea && newMessagesArea.children.length > currentMessagesArea.children.length) {
+                    // Есть новые сообщения - обновляем
+                    currentMessagesArea.innerHTML = newMessagesArea.innerHTML;
+                    scrollToBottom();
+                }
+            })
+            .catch(error => console.error('Ошибка проверки сообщений:', error));
+        }
+
+        // Запускаем проверку каждые 3 секунды
+        setInterval(checkNewMessages, 3000);
+    </script>        
