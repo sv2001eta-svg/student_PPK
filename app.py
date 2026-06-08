@@ -127,7 +127,6 @@ def users_list():
     
     return render_template('users.html', users=users, current_user=session['nickname'])
 
-
 # === ЧАТ С ПОЛЬЗОВАТЕЛЕМ ===  ← ВСТАВЬ СЮДА
 @app.route('/chat/<recipient_nickname>')
 def chat(recipient_nickname):
@@ -164,6 +163,30 @@ def chat(recipient_nickname):
                            recipient=recipient, 
                            messages=messages)
 
+# === ОТПРАВКА СООБЩЕНИЯ (API) ===
+@app.route('/api/send_message', methods=['POST'])
+def send_message_api():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Не авторизован'}), 401
+
+    data = request.get_json()
+    message_text = data.get('message')
+    recipient_id = data.get('recipient_id')
+    sender_id = session['user_id']
+
+    if not message_text or not recipient_id:
+        return jsonify({'success': False, 'message': 'Ошибка данных'}), 400
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        sql = "INSERT INTO messages (sender_id, recipient_id, message_text) VALUES (%s, %s, %s)"
+        cursor.execute(sql, (sender_id, recipient_id, message_text))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 # === ВЫХОД ===
 @app.route('/logout')
