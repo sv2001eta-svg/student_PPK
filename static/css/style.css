@@ -184,10 +184,10 @@ p a:hover {
         opacity: 1;
     }
 }
-/* Статусы пользователей */
+/* Аватарки пользователей */
 .user-card {
     display: flex;
-    align-items: center;
+    align-items: center;  /* ← ЦЕНТРИРОВАНИЕ ПО ВЕРТИКАЛИ */
     padding: 15px;
     margin: 10px 0;
     background: white;
@@ -198,18 +198,16 @@ p a:hover {
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.user-card:hover {
-    transform: translateX(5px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-
 .user-avatar {
-    width: 60px;
-    height: 60px;
+    width: 50px;  /* ← ЧУТЬ МЕНЬШЕ */
+    height: 50px;
     border-radius: 50%;
     overflow: hidden;
     margin-right: 15px;
     flex-shrink: 0;
+    display: flex;  /* ← ЦЕНТРИРОВАНИЕ ВНУТРИ */
+    align-items: center;
+    justify-content: center;
 }
 
 .user-avatar img {
@@ -226,7 +224,7 @@ p a:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5em;
+    font-size: 1.3em;  /* ← ЧУТЬ МЕНЬШЕ */
     font-weight: bold;
 }
 
@@ -237,20 +235,23 @@ p a:hover {
 .user-name {
     font-weight: bold;
     font-size: 1.1em;
-    margin-bottom: 5px;
+    margin-bottom: 3px;
+    line-height: 1.2;
 }
 
 .username {
     color: #666;
     font-weight: normal;
     font-size: 0.9em;
+    display: block;
 }
 
 .status {
     display: inline-block;
     font-size: 0.85em;
-    padding: 3px 8px;
+    padding: 2px 8px;
     border-radius: 12px;
+    margin-top: 5px;
 }
 
 .status.online {
@@ -261,5 +262,4 @@ p a:hover {
 .status.offline {
     color: #718096;
     background: #edf2f7;
-}
 }
