@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проверка работы чата - Student Messenger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        
+        .test-accounts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .account-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+        }
+        
+        .account-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .account-card p {
+            margin: 5px 0;
+            color: #555;
+        }
+        
+        .checklist {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .checklist li {
+            padding: 12px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .checklist li:before {
+            content: "☐";
+            font-size: 1.5em;
+            margin-right: 15px;
+            color: #667eea;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: #48bb78;
+        }
+        
+        .btn-success:hover {
+            background: #38a169;
+        }
+        
+        .info-box {
+            background: #e6fffa;
+            border: 2px solid #38b2ac;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .info-box strong {
+            color: #234e52;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .feature-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #48bb78;
+        }
+        
+        .feature-item h4 {
+            color: #2f855a;
+            margin-bottom: 8px;
+        }
+        
+        .feature-item.done:before {
+            content: "✅ ";
+        }
+        
+        code {
+            background: #2d3748;
+            color: #68d391;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .home-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .home-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 Проверка работы чата</h1>
+        <p class="subtitle">Инструкция для преподавателя по тестированию проекта</p>
+        
+        <!-- Тестовые аккаунты -->
+        <div class="section">
+            <h2>👥 Тестовые аккаунты</h2>
+            <div class="info-box">
+                <strong>💡 Совет:</strong> Откройте два браузера (или обычный + инкогнито) для проверки переписки между двумя пользователями.
+            </div>
+            <div class="test-accounts">
+                <div class="account-card">
+                    <h3>👤 Пользователь 1</h3>
+                    <p><strong>Логин:</strong> teacher</p>
+                    <p><strong>Пароль:</strong> test123</p>
+                    <a href="/login" class="btn">Войти</a>
+                </div>
+                <div class="account-card">
+                    <h3>👤 Пользователь 2</h3>
+                    <p><strong>Логин:</strong> student</p>
+                    <p><strong>Пароль:</strong> test123</p>
+                    <a href="/login" class="btn">Войти</a>
+                </div>
+            </div>
+            <p style="margin-top: 15px;">
+                <a href="/register" class="btn btn-success">📝 Или создайте своих пользователей</a>
+            </p>
+        </div>
+        
+        <!-- Чеклист проверки -->
+        <div class="section">
+            <h2>✅ Чеклист проверки</h2>
+            <ul class="checklist">
+                <li>Регистрация нового пользователя</li>
+                <li>Авторизация (вход в систему)</li>
+                <li>Отображение списка пользователей</li>
+                <li>Выбор собеседника</li>
+                <li>Отправка сообщения</li>
+                <li>Получение сообщения (real-time)</li>
+                <li>История переписки</li>
+                <li>Выход из системы (logout)</li>
+            </ul>
+        </div>
+        
+        <!-- Функционал -->
+        <div class="section">
+            <h2>🎯 Реализованный функционал</h2>
+            <div class="feature-grid">
+                <div class="feature-item done">
+                    <h4>Регистрация и авторизация</h4>
+                    <p>Система учетных записей с шифрованием паролей</p>
+                </div>
+                <div class="feature-item done">
+                    <h4>Личный чат</h4>
+                    <p>Переписка между зарегистрированными пользователями</p>
+                </div>
+                <div class="feature-item done">
+                    <h4>Список пользователей</h4>
+                    <p>Интерфейс для выбора собеседника</p>
+                </div>
+                <div class="feature-item done">
+                    <h4>История сообщений</h4>
+                    <p>Сохранение переписки в MySQL</p>
+                </div>
+                <div class="feature-item done">
+                    <h4>Real-time обновления</h4>
+                    <p>AJAX polling для мгновенных сообщений</p>
+                </div>
+                <div class="feature-item done">
+                    <h4>Адаптивный дизайн</h4>
+                    <p>Корректное отображение на всех устройствах</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Технологии -->
+        <div class="section">
+            <h2>🛠️ Технологический стек</h2>
+            <ul class="checklist">
+                <li><strong>Backend:</strong> <code>Python + Flask</code></li>
+                <li><strong>Frontend:</strong> <code>HTML5, CSS3, JavaScript</code></li>
+                <li><strong>Database:</strong> <code>MySQL</code></li>
+                <li><strong>AJAX:</strong> <code>jQuery</code></li>
+                <li><strong>Version Control:</strong> <code>Git + GitHub</code></li>
+            </ul>
+        </div>
+        
+        <!-- Ссылки -->
+        <div class="section">
+            <h2>🔗 Быстрый доступ</h2>
+            <a href="/" class="btn">🏠 Главная</a>
+            <a href="/register" class="btn btn-success">📝 Регистрация</a>
+            <a href="/login" class="btn">🔐 Вход</a>
+            <a href="/users" class="btn">👥 Пользователи</a>
+        </div>
+        
+        <a href="/" class="home-link">← Вернуться на главную</a>
+    </div>
+</body>
+</html>

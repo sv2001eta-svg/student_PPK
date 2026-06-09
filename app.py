@@ -258,3 +258,8 @@ def index():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+    @app.route('/teacher-check')
+def teacher_check():
+    """Страница для проверки работы преподавателем"""
+    return render_template('teacher_check.html')
