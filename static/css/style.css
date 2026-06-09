@@ -184,3 +184,54 @@ p a:hover {
         opacity: 1;
     }
 }
+/* Статусы пользователей */
+.user-card {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    margin: 10px 0;
+    background: white;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.user-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: 5px;
+}
+
+.username {
+    color: #666;
+    font-weight: normal;
+    font-size: 0.9em;
+}
+
+.status {
+    display: inline-block;
+    font-size: 0.85em;
+    padding: 3px 8px;
+    border-radius: 12px;
+}
+
+.status.online {
+    color: #2f855a;
+    background: #c6f6d5;
+}
+
+.status.offline {
+    color: #718096;
+    background: #edf2f7;
+}

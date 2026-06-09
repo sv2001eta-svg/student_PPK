@@ -84,29 +84,31 @@
 </head>
 <body>
 
-    <div class="container">
-        <div class="header">
-            <h2>Привет, {{ current_user }}! 👋</h2>
-            <a href="/logout" class="logout-btn">Выйти</a>
-        </div>
-        
-        <h1>Кому написать?</h1>
-
-        {% if users %}
-            {% for user in users %}
-            <div class="user-card">
-                <div class="user-info">
-                    <span class="user-name">{{ user.first_name }} {{ user.last_name }}</span>
-                    <span class="user-details">@{{ user.nickname }}</span>
-                </div>
-                <!-- Ссылка ведет на чат с этим пользователем -->
-                <a href="/chat/{{ user.nickname }}" class="chat-btn">Написать </a>
+    <div class="users-list">
+    {% for user in users %}
+    <a href="/chat/{{ user[0] }}" class="user-card">
+        <div class="user-info">
+            <div class="user-name">
+                {{ user[2] }} {{ user[3] }}
+                <span class="username">@{{ user[1] }}</span>
             </div>
-            {% endfor %}
-        {% else %}
-            <p style="text-align: center; color: #777;">Пока нет других пользователей. Зарегистрируйте друга!</p>
-        {% endif %}
-    </div>
-
+            
+            <!-- Статус онлайн -->
+            {% if user[4] %}
+                {% set minutes_ago = (now - user[4]).total_seconds() / 60 %}
+                {% if minutes_ago < 2 %}
+                    <span class="status online">🟢 Онлайн</span>
+                {% elif minutes_ago < 60 %}
+                    <span class="status offline"> Был(а) {{ minutes_ago|int }} мин назад</span>
+                {% else %}
+                    <span class="status offline"> Был(а) давно</span>
+                {% endif %}
+            {% else %}
+                <span class="status offline">⚪ Офлайн</span>
+            {% endif %}
+        </div>
+    </a>
+    {% endfor %}
+</div>
 </body>
 </html>

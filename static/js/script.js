@@ -148,3 +148,21 @@ loadMessages = function() {
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         });
 };
+// ============================================
+// СТАТУС ОНЛАЙН (Heartbeat)
+// ============================================
+
+// Обновляем статус каждые 30 секунд
+setInterval(() => {
+    fetch('/api/heartbeat', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Статус обновлён:', data.status);
+        })
+        .catch(error => {
+            console.log('Ошибка обновления статуса:', error);
+        });
+}, 30000); // 30 секунд
+
+// Обновить сразу при загрузке страницы
+fetch('/api/heartbeat', { method: 'POST' });

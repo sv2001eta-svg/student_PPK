@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 import mysql.connector
 from mysql.connector import Error
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here' 
@@ -56,6 +57,33 @@ def login():
             return jsonify({'success': False, 'message': str(e)})
             
     # Если запрос GET, просто показываем страницу входа
+    return render_template('avtorization.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, username, password FROM users WHERE username = %s", (username,))
+        user = cursor.fetchone()
+        
+        if user and check_password_hash(user[2], password):
+            session['user_id'] = user[0]
+            session['username'] = user[1]
+            
+            # ОБНОВИТЬ ВРЕМЯ ПОСЛЕДНЕЙ АКТИВНОСТИ
+            cursor.execute("UPDATE users SET last_seen = NOW() WHERE id = %s", (user[0],))
+            conn.commit()
+            
+            conn.close()
+            return redirect('/users')
+        else:
+            conn.close()
+            return render_template('avtorization.html', error='Неверный логин или пароль')
+    
     return render_template('avtorization.html')
 
 # === РЕГИСТРАЦИЯ ===
@@ -114,18 +142,27 @@ def register():
     return render_template('Registration.html')
 
 # === СПИСОК ПОЛЬЗОВАТЕЛЕЙ ===
+from datetime import datetime
+
 @app.route('/users')
-def users_list():
+def users():
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        return redirect('/login')
     
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT id, nickname, first_name, last_name FROM users WHERE id != %s", (session['user_id'],))
-    users = cursor.fetchall()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, username, first_name, last_name, last_seen 
+        FROM users 
+        WHERE id != %s
+    """, (session['user_id'],))
+    all_users = cursor.fetchall()
     conn.close()
     
-    return render_template('users.html', users=users, current_user=session['nickname'])
+    return render_template('users.html', 
+                          users=all_users, 
+                          current_user=session['username'],
+                          now=datetime.now())  # ← ДОБАВИТЬ ЭТО
 
 # === ЧАТ С ПОЛЬЗОВАТЕЛЕМ ===
 @app.route('/chat/<recipient_nickname>')
@@ -244,12 +281,32 @@ def get_messages_api():
     except Exception as e:
         print(f"Ошибка get_messages: {e}")
         return jsonify([]), 500
+    
+@app.route('/api/heartbeat', methods=['POST'])
+def heartbeat():
+    """Обновляет время последней активности пользователя"""
+    if 'user_id' in session:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET last_seen = NOW() WHERE id = %s", (session['user_id'],))
+        conn.commit()
+        conn.close()
+        return jsonify({'status': 'ok'})
+    return jsonify({'status': 'error'}), 401    
 
 # === ВЫХОД ===
 @app.route('/logout')
 def logout():
+    if 'user_id' in session:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        # Устанавливаем last_seen в NULL при выходе
+        cursor.execute("UPDATE users SET last_seen = NULL WHERE id = %s", (session['user_id'],))
+        conn.commit()
+        conn.close()
+    
     session.clear()
-    return redirect(url_for('login'))
+    return redirect('/login')
 
 # === ГЛАВНАЯ СТРАНИЦА ===
 @app.route('/')
