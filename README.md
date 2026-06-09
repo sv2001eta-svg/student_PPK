@@ -59,3 +59,23 @@
 # Открой терминал (Win + R → cmd)
 git clone https://github.com/sv2001eta-svg/student_PPK.git
 cd student_PPK
+
+**Вариант B: Скачать ZIP**
+1. Нажми зелёную кнопку "Code" на GitHub
+2. Выбери "Download ZIP"
+3. Распакуй в удобную папку
+
+---
+
+## 🐍 Шаг 3: Создание виртуального окружения
+
+```bash
+# Создай виртуальное окружение
+python -m venv venv
+
+# Активируй его:
+# Windows:
+venv\Scripts\activate
+
+# macOS/Linux:
+source venv/bin/activate
