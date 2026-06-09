@@ -12,7 +12,7 @@ db_config = {
     'user': 'cc086496_maga2',
     'password': 'tEX22kha',
     'database': 'cc086496_maga2',
-    'use_pure': True  # <--- ДОБАВЬ ЭТУ СТРОКУ!
+    'use_pure': True
 }
 
 
@@ -24,11 +24,11 @@ def get_db_connection():
         print(f"Ошибка подключения к БД: {e}")
         return None
 
+
 # === АВТОРИЗАЦИЯ ===
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # Получаем данные из формы
         username = request.form.get('username')
         password = request.form.get('password')
         
@@ -38,53 +38,32 @@ def login():
         try:
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
-            # Ищем пользователя по нику
             cursor.execute("SELECT * FROM users WHERE nickname = %s", (username,))
             user = cursor.fetchone()
             conn.close()
             
-            # Проверяем пароль
             if user and check_password_hash(user['password'], password):
                 session['user_id'] = user['id']
                 session['nickname'] = user['nickname']
-                # Возвращаем успешный ответ для JS
+                session['first_name'] = user['first_name']
+                session['last_name'] = user['last_name']
+                
+                # Обновить время последней активности
+                conn = get_db_connection()
+                cursor = conn.cursor()
+                cursor.execute("UPDATE users SET last_seen = NOW() WHERE id = %s", (user['id'],))
+                conn.commit()
+                conn.close()
+                
                 return jsonify({'success': True})
             else:
-                # Возвращаем ошибку с текстом
                 return jsonify({'success': False, 'message': 'Неверный логин или пароль'})
                 
         except Exception as e:
             return jsonify({'success': False, 'message': str(e)})
             
-    # Если запрос GET, просто показываем страницу входа
     return render_template('avtorization.html')
 
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, username, password FROM users WHERE username = %s", (username,))
-        user = cursor.fetchone()
-        
-        if user and check_password_hash(user[2], password):
-            session['user_id'] = user[0]
-            session['username'] = user[1]
-            
-            # ОБНОВИТЬ ВРЕМЯ ПОСЛЕДНЕЙ АКТИВНОСТИ
-            cursor.execute("UPDATE users SET last_seen = NOW() WHERE id = %s", (user[0],))
-            conn.commit()
-            
-            conn.close()
-            return redirect('/users')
-        else:
-            conn.close()
-            return render_template('avtorization.html', error='Неверный логин или пароль')
-    
-    return render_template('avtorization.html')
 
 # === РЕГИСТРАЦИЯ ===
 @app.route('/register', methods=['GET', 'POST'])
@@ -108,7 +87,7 @@ def register():
             conn = get_db_connection()
             
             if not conn:
-                print("❌ Не удалось подключиться к БД")
+                print(" Не удалось подключиться к БД")
                 return jsonify({'success': False, 'error': 'Ошибка подключения к базе данных'})
             
             print("✅ Подключение к БД успешно")
@@ -141,9 +120,8 @@ def register():
     
     return render_template('Registration.html')
 
-# === СПИСОК ПОЛЬЗОВАТЕЛЕЙ ===
-from datetime import datetime
 
+# === СПИСОК ПОЛЬЗОВАТЕЛЕЙ ===
 @app.route('/users')
 def users():
     if 'user_id' not in session:
@@ -152,7 +130,7 @@ def users():
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, username, first_name, last_name, last_seen 
+        SELECT id, nickname, first_name, last_name, last_seen 
         FROM users 
         WHERE id != %s
     """, (session['user_id'],))
@@ -161,8 +139,9 @@ def users():
     
     return render_template('users.html', 
                           users=all_users, 
-                          current_user=session['username'],
-                          now=datetime.now())  # ← ДОБАВИТЬ ЭТО
+                          current_user=session['nickname'],
+                          now=datetime.now())
+
 
 # === ЧАТ С ПОЛЬЗОВАТЕЛЕМ ===
 @app.route('/chat/<recipient_nickname>')
@@ -175,7 +154,6 @@ def chat(recipient_nickname):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # Находим ID собеседника
     cursor.execute("SELECT * FROM users WHERE nickname = %s", (recipient_nickname,))
     recipient = cursor.fetchone()
     
@@ -184,7 +162,6 @@ def chat(recipient_nickname):
     
     recipient_id = recipient['id']
 
-    # Получаем историю переписки (последние 50 сообщений)
     cursor.execute("""
         SELECT m.*, u.nickname as sender_nickname 
         FROM messages m
@@ -196,12 +173,10 @@ def chat(recipient_nickname):
     """, (current_user_id, recipient_id, recipient_id, current_user_id))
     
     messages = cursor.fetchall()
-    # Переворачиваем, чтобы новые были внизу
     messages.reverse()
     
     conn.close()
 
-    # Если AJAX-запрос - возвращаем только блок с сообщениями
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         from flask import render_template_string
         html = render_template_string('''
@@ -222,6 +197,7 @@ def chat(recipient_nickname):
                            recipient=recipient, 
                            messages=messages,
                            sender_nickname=session['nickname'])
+
 
 # === ОТПРАВКА СООБЩЕНИЯ (API) ===
 @app.route('/api/send_message', methods=['POST'])
@@ -247,6 +223,7 @@ def send_message_api():
         return jsonify({'success': True})
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
+
 
 # === ПОЛУЧЕНИЕ НОВЫХ СООБЩЕНИЙ (JSON API) ===
 @app.route('/api/get_messages')
@@ -281,7 +258,9 @@ def get_messages_api():
     except Exception as e:
         print(f"Ошибка get_messages: {e}")
         return jsonify([]), 500
-    
+
+
+# === HEARTBEAT (статус онлайн) ===
 @app.route('/api/heartbeat', methods=['POST'])
 def heartbeat():
     """Обновляет время последней активности пользователя"""
@@ -294,13 +273,13 @@ def heartbeat():
         return jsonify({'status': 'ok'})
     return jsonify({'status': 'error'}), 401    
 
+
 # === ВЫХОД ===
 @app.route('/logout')
 def logout():
     if 'user_id' in session:
         conn = get_db_connection()
         cursor = conn.cursor()
-        # Устанавливаем last_seen в NULL при выходе
         cursor.execute("UPDATE users SET last_seen = NULL WHERE id = %s", (session['user_id'],))
         conn.commit()
         conn.close()
@@ -308,15 +287,20 @@ def logout():
     session.clear()
     return redirect('/login')
 
+
+# === СТРАНИЦА ДЛЯ ПРЕПОДАВАТЕЛЯ ===
+@app.route('/teacher-check')
+def teacher_check():
+    """Страница для проверки работы преподавателем"""
+    return render_template('teacher_check.html')
+
+
 # === ГЛАВНАЯ СТРАНИЦА ===
 @app.route('/')
 def index():
     return redirect(url_for('register'))
 
+
+# === ЗАПУСК ПРИЛОЖЕНИЯ ===
 if __name__ == '__main__':
     app.run(debug=True)
-
-    @app.route('/teacher-check')
-def teacher_check():
-    """Страница для проверки работы преподавателем"""
-    return render_template('teacher_check.html')
