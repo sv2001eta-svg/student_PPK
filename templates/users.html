@@ -86,14 +86,22 @@
 
     <div class="users-list">
     {% for user in users %}
-    <a href="/chat/{{ user[0] }}" class="user-card">
+    <a href="/chat/{{ user[1] }}" class="user-card">
+        <div class="user-avatar">
+            {% if user[5] %}
+                <img src="/static/avatars/{{ user[5] }}" alt="{{ user[1] }}">
+            {% else %}
+                <div class="avatar-placeholder">
+                    {{ user[2][0] }}{{ user[3][0] }}
+                </div>
+            {% endif %}
+        </div>
         <div class="user-info">
             <div class="user-name">
                 {{ user[2] }} {{ user[3] }}
                 <span class="username">@{{ user[1] }}</span>
             </div>
             
-            <!-- Статус онлайн -->
             {% if user[4] %}
                 {% set minutes_ago = (now - user[4]).total_seconds() / 60 %}
                 {% if minutes_ago < 2 %}
@@ -101,7 +109,7 @@
                 {% elif minutes_ago < 60 %}
                     <span class="status offline"> Был(а) {{ minutes_ago|int }} мин назад</span>
                 {% else %}
-                    <span class="status offline"> Был(а) давно</span>
+                    <span class="status offline">⚪ Был(а) давно</span>
                 {% endif %}
             {% else %}
                 <span class="status offline">⚪ Офлайн</span>

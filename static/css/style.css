@@ -203,6 +203,33 @@ p a:hover {
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
+.user-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
 .user-info {
     flex: 1;
 }
@@ -234,4 +261,5 @@ p a:hover {
 .status.offline {
     color: #718096;
     background: #edf2f7;
+}
 }

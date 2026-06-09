@@ -10,7 +10,7 @@
 <body>
     <div class="container">
         <h1>Регистрация</h1>
-        <form id="registrationForm" method="POST">
+        <form method="POST" action="/register" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="first_name">Имя:</label>
                 <input type="text" id="first_name" name="first_name" required>
@@ -29,6 +29,11 @@
             <div class="form-group">
                 <label for="password">Пароль:</label>
                 <input type="password" id="password" name="password" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="avatar">📷 Аватарка (необязательно):</label>
+                <input type="file" id="avatar" name="avatar" accept="image/*">
             </div>
             
             <button type="submit">Зарегистрироваться</button>
