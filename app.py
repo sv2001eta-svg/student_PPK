@@ -1,14 +1,13 @@
 import os
+import sqlite3
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-import mysql.connector
-from mysql.connector import Error
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here' 
+app.secret_key = 'your_secret_key_here'
 
 # Настройка Flask-Login
 login_manager = LoginManager()
@@ -19,26 +18,63 @@ app.config['UPLOAD_FOLDER'] = 'static/avatars'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
+# Путь к базе данных SQLite
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database.db')
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-db_config = {
-    'host': 'vh464.timeweb.ru',
-    'user': 'cc086496_maga2',
-    'password': 'tEX22kha',
-    'database': 'cc086496_maga2',
-    'use_pure': True
-}
-
-
 def get_db_connection():
+    """Создаёт подключение к SQLite"""
     try:
-        conn = mysql.connector.connect(**db_config)
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row  # Чтобы работать как с dictionary
+        conn.execute("PRAGMA journal_mode=WAL")  # Для производительности
+        conn.execute("PRAGMA foreign_keys=ON")  # Включаем внешние ключи
         return conn
-    except Error as e:
+    except Exception as e:
         print(f"Ошибка подключения к БД: {e}")
         return None
 
+def init_db():
+    """Создаёт таблицы, если их нет"""
+    conn = get_db_connection()
+    if conn is None:
+        print("❌ Не удалось подключиться к БД!")
+        return
+    
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            first_name TEXT NOT NULL,
+            last_name TEXT NOT NULL,
+            nickname TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            avatar TEXT DEFAULT NULL,
+            last_seen DATETIME DEFAULT NULL
+        )
+    ''')
+    
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sender_id INTEGER NOT NULL,
+            recipient_id INTEGER NOT NULL,
+            message_text TEXT NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (sender_id) REFERENCES users(id),
+            FOREIGN KEY (recipient_id) REFERENCES users(id)
+        )
+    ''')
+    
+    conn.commit()
+    conn.close()
+    print("✅ База данных инициализирована")
+
+# Инициализируем БД при запуске
+init_db()
 
 class User(UserMixin):
     def __init__(self, id, nickname, first_name, last_name, avatar=None):
@@ -48,13 +84,15 @@ class User(UserMixin):
         self.last_name = last_name
         self.avatar = avatar
 
-
 @login_manager.user_loader
 def load_user(user_id):
     """Загружает пользователя из БД по ID"""
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    if conn is None:
+        return None
+    
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
     user_data = cursor.fetchone()
     conn.close()
     
@@ -64,9 +102,9 @@ def load_user(user_id):
             nickname=user_data['nickname'],
             first_name=user_data['first_name'],
             last_name=user_data['last_name'],
-            avatar=user_data.get('avatar')
+            avatar=user_data['avatar']
         )
-    return None    
+    return None
 
 
 # === АВТОРИЗАЦИЯ ===
@@ -81,8 +119,8 @@ def login():
 
         try:
             conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM users WHERE nickname = %s", (username,))
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM users WHERE nickname = ?", (username,))
             user_data = cursor.fetchone()
             conn.close()
             
@@ -92,14 +130,14 @@ def login():
                     nickname=user_data['nickname'],
                     first_name=user_data['first_name'],
                     last_name=user_data['last_name'],
-                    avatar=user_data.get('avatar')
+                    avatar=user_data['avatar']
                 )
                 
                 login_user(user, remember=True)
                 
                 conn = get_db_connection()
                 cursor = conn.cursor()
-                cursor.execute("UPDATE users SET last_seen = NOW() WHERE id = %s", (user.id,))
+                cursor.execute("UPDATE users SET last_seen = datetime('now') WHERE id = ?", (user.id,))
                 conn.commit()
                 conn.close()
                 
@@ -129,28 +167,30 @@ def register():
         
         hashed_password = generate_password_hash(password)
         
+        # Обработка аватарки
         avatar_filename = None
         if 'avatar' in request.files:
             file = request.files['avatar']
             if file and file.filename and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 avatar_filename = f"{nickname}_{filename}"
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], avatar_filename))
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], avatar_filename)
+                file.save(filepath)
         
         try:
             conn = get_db_connection()
             cursor = conn.cursor()
             
-            sql = "INSERT INTO users (first_name, last_name, nickname, password, avatar) VALUES (%s, %s, %s, %s, %s)"
+            sql = "INSERT INTO users (first_name, last_name, nickname, password, avatar) VALUES (?, ?, ?, ?, ?)"
             cursor.execute(sql, (first_name, last_name, nickname, hashed_password, avatar_filename))
             conn.commit()
             
             conn.close()
             return jsonify({'success': True})
             
-        except mysql.connector.Error as err:
-            print(f"❌ ОШИБКА MySQL: {err}")
-            return jsonify({'success': False, 'error': f'Ошибка БД: {err}'})
+        except sqlite3.IntegrityError as err:
+            print(f"❌ ОШИБКА: Ник уже занят: {err}")
+            return jsonify({'success': False, 'error': 'Этот ник уже занят'})
         except Exception as e:
             print(f"❌ ОБЩАЯ ОШИБКА: {e}")
             return jsonify({'success': False, 'error': str(e)})
@@ -167,7 +207,7 @@ def users():
     cursor.execute("""
         SELECT id, nickname, first_name, last_name, last_seen, avatar 
         FROM users 
-        WHERE id != %s
+        WHERE id != ?
     """, (current_user.id,))
     all_users = cursor.fetchall()
     conn.close()
@@ -183,9 +223,9 @@ def users():
 @login_required
 def chat(recipient_nickname):
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor()
     
-    cursor.execute("SELECT * FROM users WHERE nickname = %s", (recipient_nickname,))
+    cursor.execute("SELECT * FROM users WHERE nickname = ?", (recipient_nickname,))
     recipient = cursor.fetchone()
     
     if not recipient:
@@ -197,8 +237,8 @@ def chat(recipient_nickname):
         SELECT m.*, u.nickname as sender_nickname, u.avatar as sender_avatar
         FROM messages m
         JOIN users u ON m.sender_id = u.id
-        WHERE (m.sender_id = %s AND m.recipient_id = %s) 
-           OR (m.sender_id = %s AND m.recipient_id = %s) 
+        WHERE (m.sender_id = ? AND m.recipient_id = ?) 
+           OR (m.sender_id = ? AND m.recipient_id = ?) 
         ORDER BY m.timestamp DESC
         LIMIT 50
     """, (current_user.id, recipient_id, recipient_id, current_user.id))
@@ -229,7 +269,7 @@ def send_message_api():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        sql = "INSERT INTO messages (sender_id, recipient_id, message_text) VALUES (%s, %s, %s)"
+        sql = "INSERT INTO messages (sender_id, recipient_id, message_text) VALUES (?, ?, ?)"
         cursor.execute(sql, (current_user.id, recipient_id, message_text))
         conn.commit()
         conn.close()
@@ -250,21 +290,33 @@ def get_messages_api():
 
     try:
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor()
         cursor.execute("""
             SELECT m.id, m.message_text, m.sender_id, u.nickname as sender_nickname,
-                   DATE_FORMAT(m.timestamp, '%H:%i') as time
+                   m.timestamp as time
             FROM messages m
             JOIN users u ON m.sender_id = u.id
-            WHERE m.id > %s
-              AND ((m.sender_id = %s AND m.recipient_id = %s) 
-                   OR (m.sender_id = %s AND m.recipient_id = %s))
+            WHERE m.id > ?
+              AND ((m.sender_id = ? AND m.recipient_id = ?) 
+                   OR (m.sender_id = ? AND m.recipient_id = ?))
             ORDER BY m.id ASC
         """, (last_id, current_user.id, recipient_id, recipient_id, current_user.id))
         
         messages = cursor.fetchall()
         conn.close()
-        return jsonify(messages)
+        
+        # Форматируем время
+        result = []
+        for msg in messages:
+            result.append({
+                'id': msg['id'],
+                'message_text': msg['message_text'],
+                'sender_id': msg['sender_id'],
+                'sender_nickname': msg['sender_nickname'],
+                'time': msg['time']
+            })
+        
+        return jsonify(result)
     except Exception as e:
         print(f"Ошибка get_messages: {e}")
         return jsonify([]), 500
@@ -276,7 +328,7 @@ def get_messages_api():
 def heartbeat():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE users SET last_seen = NOW() WHERE id = %s", (current_user.id,))
+    cursor.execute("UPDATE users SET last_seen = datetime('now') WHERE id = ?", (current_user.id,))
     conn.commit()
     conn.close()
     return jsonify({'status': 'ok'})
@@ -288,7 +340,7 @@ def heartbeat():
 def logout():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE users SET last_seen = NOW() WHERE id = %s", (current_user.id,))
+    cursor.execute("UPDATE users SET last_seen = datetime('now') WHERE id = ?", (current_user.id,))
     conn.commit()
     conn.close()
     
