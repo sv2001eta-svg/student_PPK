@@ -29,3 +29,6 @@ Thumbs.db
 # База данных (если будет SQLite)
 *.db
 *.sqlite3
+# Аватарки пользователей (не коммитим реальные файлы)
+static/avatars/*
+!static/avatars/.gitkeep
