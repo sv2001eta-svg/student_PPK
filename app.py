@@ -1,4 +1,5 @@
 import os
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -8,6 +9,12 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here' 
+
+# Настройка Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
 app.config['UPLOAD_FOLDER'] = 'static/avatars'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -33,6 +40,35 @@ def get_db_connection():
         return None
 
 
+class User(UserMixin):
+    def __init__(self, id, nickname, first_name, last_name, avatar=None):
+        self.id = id
+        self.nickname = nickname
+        self.first_name = first_name
+        self.last_name = last_name
+        self.avatar = avatar
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Загружает пользователя из БД по ID"""
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+    user_data = cursor.fetchone()
+    conn.close()
+    
+    if user_data:
+        return User(
+            id=user_data['id'],
+            nickname=user_data['nickname'],
+            first_name=user_data['first_name'],
+            last_name=user_data['last_name'],
+            avatar=user_data.get('avatar')
+        )
+    return None    
+
+
 # === АВТОРИЗАЦИЯ ===
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -47,19 +83,23 @@ def login():
             conn = get_db_connection()
             cursor = conn.cursor(dictionary=True)
             cursor.execute("SELECT * FROM users WHERE nickname = %s", (username,))
-            user = cursor.fetchone()
+            user_data = cursor.fetchone()
             conn.close()
             
-            if user and check_password_hash(user['password'], password):
-                session['user_id'] = user['id']
-                session['nickname'] = user['nickname']
-                session['first_name'] = user['first_name']
-                session['last_name'] = user['last_name']
+            if user_data and check_password_hash(user_data['password'], password):
+                user = User(
+                    id=user_data['id'],
+                    nickname=user_data['nickname'],
+                    first_name=user_data['first_name'],
+                    last_name=user_data['last_name'],
+                    avatar=user_data.get('avatar')
+                )
                 
-                # Обновить время последней активности
+                login_user(user, remember=True)
+                
                 conn = get_db_connection()
                 cursor = conn.cursor()
-                cursor.execute("UPDATE users SET last_seen = NOW() WHERE id = %s", (user['id'],))
+                cursor.execute("UPDATE users SET last_seen = NOW() WHERE id = %s", (user.id,))
                 conn.commit()
                 conn.close()
                 
@@ -73,6 +113,7 @@ def login():
     return render_template('avtorization.html')
 
 
+# === РЕГИСТРАЦИЯ ===
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -88,7 +129,6 @@ def register():
         
         hashed_password = generate_password_hash(password)
         
-        # Обработка аватарки
         avatar_filename = None
         if 'avatar' in request.files:
             file = request.files['avatar']
@@ -120,34 +160,28 @@ def register():
 
 # === СПИСОК ПОЛЬЗОВАТЕЛЕЙ ===
 @app.route('/users')
+@login_required
 def users():
-    if 'user_id' not in session:
-        return redirect('/login')
-    
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("""
-        SELECT id, nickname, first_name, last_name, last_seen 
+        SELECT id, nickname, first_name, last_name, last_seen, avatar 
         FROM users 
         WHERE id != %s
-    """, (session['user_id'],))
+    """, (current_user.id,))
     all_users = cursor.fetchall()
     conn.close()
     
     return render_template('users.html', 
                           users=all_users, 
-                          current_user=session['nickname'],
+                          current_user=current_user,
                           now=datetime.now())
 
 
 # === ЧАТ С ПОЛЬЗОВАТЕЛЕМ ===
 @app.route('/chat/<recipient_nickname>')
+@login_required
 def chat(recipient_nickname):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    current_user_id = session['user_id']
-    
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
@@ -160,52 +194,34 @@ def chat(recipient_nickname):
     recipient_id = recipient['id']
 
     cursor.execute("""
-        SELECT m.*, u.nickname as sender_nickname 
+        SELECT m.*, u.nickname as sender_nickname, u.avatar as sender_avatar
         FROM messages m
         JOIN users u ON m.sender_id = u.id
         WHERE (m.sender_id = %s AND m.recipient_id = %s) 
            OR (m.sender_id = %s AND m.recipient_id = %s) 
         ORDER BY m.timestamp DESC
         LIMIT 50
-    """, (current_user_id, recipient_id, recipient_id, current_user_id))
+    """, (current_user.id, recipient_id, recipient_id, current_user.id))
     
     messages = cursor.fetchall()
     messages.reverse()
     
     conn.close()
 
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        from flask import render_template_string
-        html = render_template_string('''
-            {% for msg in messages %}
-                <div class="message {% if msg.sender_id == session['user_id'] %}mine{% else %}theirs{% endif %}">
-                    {% if msg.sender_id != session['user_id'] %}
-                        <strong>{{ msg.sender_nickname }}:</strong><br>
-                    {% endif %}
-                    {{ msg.message_text }}
-                    <div class="message-time">{{ msg.timestamp.strftime('%H:%M') }}</div>
-                </div>
-            {% endfor %}
-        ''', messages=messages, session=session)
-        return html
-
     return render_template('chat.html', 
-                           current_user=session['nickname'], 
+                           current_user=current_user, 
                            recipient=recipient, 
                            messages=messages,
-                           sender_nickname=session['nickname'])
+                           sender_nickname=current_user.nickname)
 
 
 # === ОТПРАВКА СООБЩЕНИЯ (API) ===
 @app.route('/api/send_message', methods=['POST'])
+@login_required
 def send_message_api():
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'message': 'Не авторизован'}), 401
-
     data = request.get_json()
     message_text = data.get('message')
     recipient_id = data.get('recipient_id')
-    sender_id = session['user_id']
 
     if not message_text or not recipient_id:
         return jsonify({'success': False, 'message': 'Ошибка данных'}), 400
@@ -214,7 +230,7 @@ def send_message_api():
         conn = get_db_connection()
         cursor = conn.cursor()
         sql = "INSERT INTO messages (sender_id, recipient_id, message_text) VALUES (%s, %s, %s)"
-        cursor.execute(sql, (sender_id, recipient_id, message_text))
+        cursor.execute(sql, (current_user.id, recipient_id, message_text))
         conn.commit()
         conn.close()
         return jsonify({'success': True})
@@ -224,11 +240,8 @@ def send_message_api():
 
 # === ПОЛУЧЕНИЕ НОВЫХ СООБЩЕНИЙ (JSON API) ===
 @app.route('/api/get_messages')
+@login_required
 def get_messages_api():
-    if 'user_id' not in session:
-        return jsonify([])
-
-    current_user_id = session['user_id']
     recipient_id = request.args.get('recipient_id')
     last_id = request.args.get('last_id', 0, type=int)
 
@@ -247,7 +260,7 @@ def get_messages_api():
               AND ((m.sender_id = %s AND m.recipient_id = %s) 
                    OR (m.sender_id = %s AND m.recipient_id = %s))
             ORDER BY m.id ASC
-        """, (last_id, current_user_id, recipient_id, recipient_id, current_user_id))
+        """, (last_id, current_user.id, recipient_id, recipient_id, current_user.id))
         
         messages = cursor.fetchall()
         conn.close()
@@ -259,29 +272,27 @@ def get_messages_api():
 
 # === HEARTBEAT (статус онлайн) ===
 @app.route('/api/heartbeat', methods=['POST'])
+@login_required
 def heartbeat():
-    """Обновляет время последней активности пользователя"""
-    if 'user_id' in session:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("UPDATE users SET last_seen = NOW() WHERE id = %s", (session['user_id'],))
-        conn.commit()
-        conn.close()
-        return jsonify({'status': 'ok'})
-    return jsonify({'status': 'error'}), 401    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET last_seen = NOW() WHERE id = %s", (current_user.id,))
+    conn.commit()
+    conn.close()
+    return jsonify({'status': 'ok'})
 
 
 # === ВЫХОД ===
 @app.route('/logout')
+@login_required
 def logout():
-    if 'user_id' in session:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("UPDATE users SET last_seen = NULL WHERE id = %s", (session['user_id'],))
-        conn.commit()
-        conn.close()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET last_seen = NOW() WHERE id = %s", (current_user.id,))
+    conn.commit()
+    conn.close()
     
-    session.clear()
+    logout_user()
     return redirect('/login')
 
 
