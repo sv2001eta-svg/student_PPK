@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Чат с {{ recipient.nickname }}</title>
     <!-- Уведомления о новых сообщениях -->
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -134,19 +134,19 @@
 
         <!-- Скрытые поля для JavaScript -->
         <input type="hidden" id="recipientId" value="{{ recipient.id }}">
-        <input type="hidden" id="currentUserId" value="{{ session['user_id'] }}">
+        <input type="hidden" id="currentUserId" value="{{ current_user.id }}">
 
         <div class="messages-area" id="messagesArea">
             {% for msg in messages %}
-                <div class="message {% if msg.sender_id == session['user_id'] %}mine{% else %}theirs{% endif %}" 
+                <div class="message {% if msg.sender_id == current_user.id %}mine{% else %}theirs{% endif %}" 
                      data-id="{{ msg.id }}">
-                    {% if msg.sender_id != session['user_id'] %}
+                    {% if msg.sender_id != current_user.id %}
                         <strong>{{ msg.sender_nickname }}:</strong><br>
                     {% endif %}
                     {{ msg.message_text }}
                     <div class="message-time">
                         {% if msg.timestamp %}
-                            {{ msg.timestamp.strftime('%H:%M') }}
+                            {{ msg.timestamp[11:16] if msg.timestamp|length >= 16 else '' }}
                         {% endif %}
                     </div>
                 </div>
@@ -220,24 +220,29 @@
             const isMine = msg.sender_id == currentUserId;
             const div = document.createElement('div');
             div.className = `message ${isMine ? 'mine' : 'theirs'}`;
-            div.dataset.id = msg.id; // Важно для отслеживания новых!
+            div.dataset.id = msg.id;
             
-            const time = msg.time || new Date().toLocaleTimeString('ru-RU', {
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
+            // Извлекаем время из timestamp (формат: "2026-06-14 15:30:45")
+            let timeStr = '';
+            if (msg.time && msg.time.length >= 16) {
+                timeStr = msg.time.substring(11, 16); // "15:30"
+            } else {
+                timeStr = new Date().toLocaleTimeString('ru-RU', {
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+            }
             
             div.innerHTML = `
                 ${!isMine ? `<strong>${escapeHtml(msg.sender_nickname)}:</strong><br>` : ''}
                 ${escapeHtml(msg.message_text)}
-                <div class="message-time">${time}</div>
+                <div class="message-time">${timeStr}</div>
             `;
             messagesArea.appendChild(div);
         }
 
-        // === REAL-TIME ПРОВЕРКА НОВЫХ СООБЩЕНИЙ (JSON API) ===
+        // === REAL-TIME ПРОВЕРКА НОВЫХ СООБЩЕНИЙ ===
         function pollMessages() {
-            // Получаем ID последнего отображённого сообщения
             const lastMsg = messagesArea.querySelector('.message:last-child');
             const lastId = lastMsg ? parseInt(lastMsg.dataset.id) || 0 : 0;
 
