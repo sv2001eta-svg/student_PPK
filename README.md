@@ -11,8 +11,10 @@
 <br>
 
 <div align="center">
+
 [![🌐 ЖИВОЙ ПРОЕКТ](https://img.shields.io/badge/🌐_ЖИВОЙ_ПРОЕКТ-открыть-1E415E?style=for-the-badge)](https://studentppk2026.pythonanywhere.com)
-  [![📂 GITHUB](https://img.shields.io/badge/📂_GITHUB-репозиторий-181717?style=for-the-badge&logo=github)](https://github.com/sv2001eta-svg/student_PPK)
+[![📂 GITHUB](https://img.shields.io/badge/📂_GITHUB-репозиторий-181717?style=for-the-badge&logo=github)](https://github.com/sv2001eta-svg/student_PPK)
+
 </div>
 
 <br>
