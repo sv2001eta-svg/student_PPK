@@ -11,9 +11,8 @@
 <br>
 
 <div align="center">
-  <a href="https://studentppk2026.pythonanywhere.com">
-    <img src="https://img.shields.io/badge/🌐_ЖИВОЙ_ПРОЕКТ-открыть-1E415E?style=for-the-badge" />
-  </a>
+[![🌐 ЖИВОЙ ПРОЕКТ](https://img.shields.io/badge/🌐_ЖИВОЙ_ПРОЕКТ-открыть-1E415E?style=for-the-badge)](https://studentppk2026.pythonanywhere.com)
+  [![📂 GITHUB](https://img.shields.io/badge/📂_GITHUB-репозиторий-181717?style=for-the-badge&logo=github)](https://github.com/sv2001eta-svg/student_PPK)
 </div>
 
 <br>
@@ -33,9 +32,9 @@
 
 ---
 
-## 🌐 ЖИВОЙ ПРОЕКТ
-
-> **🔗 Ссылка:** [https://studentppk2026.pythonanywhere.com](https://studentppk2026.pythonanywhere.com)
+### 🔗 Ссылки:
+- **🌐 Живой проект:** https://studentppk2026.pythonanywhere.com
+- **📂 GitHub репозиторий:** https://github.com/sv2001eta-svg/student_PPK
 >
 > **🚀 Проект развёрнут на PythonAnywhere и доступен 24/7!**
 
@@ -153,7 +152,15 @@ python app.py
 
 **5. Откройте браузер и перейдите:**
 
+**Онлайн версия (рекомендуется):**
+
+https://studentppk2026.pythonanywhere.com
+
+**Или локально:**
+
 http://127.0.0.1:5000
+
+(только если запустили `python app.py`)
 
 **6. Остановить сервер: нажмите Ctrl+C в терминале**
 
