@@ -80,29 +80,32 @@
 ---
 
 ## 📁 Структура проекта
+```
 student_PPK/
-├── app.py # Основной файл приложения (Flask)
-├── database.db # База данных SQLite
-├── requirements.txt # Зависимости Python
-├── README.md # Документация проекта
-├── BACKLOG.md # Product Backlog
+│
+── 📄 app.py # Основной файл приложения (Flask)
+├── 🗄️ database.db # База данных SQLite
+├── 📋 requirements.txt # Зависимости Python
+├── 📘 README.md # Документация проекта
+├── 📝 BACKLOG.md # Product Backlog
 ├── .gitignore # Исключения для Git
 │
-├── templates/ # HTML-шаблоны
+├── 📁 templates/ # HTML-шаблоны
 │ ├── Registration.html # Страница регистрации
-│ ├── avtorization.html # Страница входа
-│ ├── users.html # Список пользователей
-│ ├── chat.html # Страница чата
-│ ├── index.html # Главная страница
-│ ├── help.html # Страница помощи
-│ └── teacher_check.html # Страница для преподавателя
+│ ├── 📄 avtorization.html # Страница входа
+│ ├── 📄 users.html # Список пользователей
+│ ├── 📄 chat.html # Страница чата
+│ ├── 📄 index.html # Главная страница
+│ ├── 📄 help.html # Страница помощи
+│ └── 📄 teacher_check.html # Страница для преподавателя
 │
-└── static/ # Статические файлы
+└── 📁 static/ # Статические файлы
 ├── css/
 │ └── style.css # Стили приложения
 ├── js/
 │ └── script.js # JavaScript код
-└── avatars/ # Папка для аватарок пользователей
+└── 📁 avatars/ # Папка для аватарок пользователей
+```
 
 ---
 
